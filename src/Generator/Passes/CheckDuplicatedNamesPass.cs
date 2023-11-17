@@ -4,10 +4,6 @@ using System.Linq;
 using CppSharp.AST;
 using CppSharp.AST.Extensions;
 using CppSharp.Generators;
-using CppSharp.Generators.C;
-using CppSharp.Generators.CLI;
-using CppSharp.Generators.CSharp;
-using CppSharp.Generators.Emscripten;
 using CppSharp.Types;
 
 namespace CppSharp.Passes
@@ -190,41 +186,10 @@ namespace CppSharp.Passes
 
         public override bool VisitASTContext(ASTContext context)
         {
-            var typePrinter = GetTypePrinter(Options.GeneratorKind, Context);
-            DeclarationName.ParameterTypeComparer.TypePrinter = typePrinter;
+            DeclarationName.ParameterTypeComparer.TypePrinter = Options.GeneratorKind.CreateTypePrinter(Context);
             DeclarationName.ParameterTypeComparer.TypeMaps = Context.TypeMaps;
             DeclarationName.ParameterTypeComparer.GeneratorKind = Options.GeneratorKind;
             return base.VisitASTContext(context);
-        }
-
-        private TypePrinter GetTypePrinter(GeneratorKind kind, BindingContext context)
-        {
-            TypePrinter typePrinter;
-            switch (kind)
-            {
-                case GeneratorKind.C:
-                    typePrinter = new CppTypePrinter(Context) { PrintFlavorKind = CppTypePrintFlavorKind.C };
-                    break;
-                case GeneratorKind.Emscripten:
-                    typePrinter = new EmscriptenTypePrinter(Context);
-                    break;;
-                case GeneratorKind.CPlusPlus:
-                case GeneratorKind.QuickJS:
-                case GeneratorKind.NAPI:
-                case GeneratorKind.TypeScript:
-                    typePrinter = new CppTypePrinter(Context);
-                    break;
-                case GeneratorKind.CLI:
-                    typePrinter = new CLITypePrinter(Context);
-                    break;
-                case GeneratorKind.CSharp:
-                    typePrinter = new CSharpTypePrinter(Context);
-                    break;
-                default:
-                    throw new System.NotImplementedException();
-            }
-
-            return typePrinter;
         }
 
         public override bool VisitProperty(Property decl)
